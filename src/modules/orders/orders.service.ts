@@ -22,21 +22,7 @@ export class OrdersService {
   ): Promise<ResponseOrderDto> {
     try {
       const order = await this.prisma.order.create({
-        data: {
-          orderNumber: await this.generateOrderNumber(),
-          expectedDeliveryDate: new Date(dto.expectedDeliveryDate),
-          customerName: dto.customerName,
-          customerDocument: dto.customerDocument,
-          deliveryAddress: dto.deliveryAddress,
-          status: dto.status ?? 'PENDING',
-          userId: userId,
-          items: {
-            create: dto.items.map((item) => ({
-              description: item.description,
-              price: item.price,
-            })),
-          },
-        },
+        data: await this.buildCreateOrderData(dto, userId),
         include: {
           items: true,
         },
@@ -122,48 +108,11 @@ export class OrdersService {
       throw new NotFoundException(`Order with id ${id} not found`);
     }
 
-    const data: Prisma.OrderUpdateInput = {};
-
-    if (updateOrderDto.expectedDeliveryDate !== undefined) {
-      data.expectedDeliveryDate = new Date(updateOrderDto.expectedDeliveryDate);
-    }
-
-    if (updateOrderDto.customerName !== undefined) {
-      data.customerName = updateOrderDto.customerName;
-    }
-
-    if (updateOrderDto.customerDocument !== undefined) {
-      data.customerDocument = updateOrderDto.customerDocument;
-    }
-
-    if (updateOrderDto.deliveryAddress !== undefined) {
-      data.deliveryAddress = updateOrderDto.deliveryAddress;
-    }
-
-    if (updateOrderDto.status !== undefined) {
-      data.status = updateOrderDto.status;
-    }
-
-    if (updateOrderDto.items !== undefined) {
-      data.items = {
-        deleteMany: {},
-        create: updateOrderDto.items.map((item) => ({
-          description: item.description,
-          price: item.price,
-        })),
-      };
-    }
-
     try {
-      const updatedOrder = await this.prisma.order.update({
-        where: {
-          id,
-        },
-        data,
-        include: {
-          items: true,
-        },
-      });
+      const updatedOrder = await this.updateOrderAndIncludeItems(
+        id,
+        this.buildUpdateOrderData(updateOrderDto),
+      );
 
       return this.toOrderResponseDto(updatedOrder);
     } catch (error) {
@@ -171,26 +120,16 @@ export class OrdersService {
     }
   }
 
+  // Order item operations
   async addOrderItem(
     orderId: string,
     createOrderItemDto: CreateOrderItemDto,
   ): Promise<ResponseOrderDto> {
     await this.getActiveOrderOrThrow(orderId);
 
-    const order = await this.prisma.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        items: {
-          create: {
-            description: createOrderItemDto.description,
-            price: createOrderItemDto.price,
-          },
-        },
-      },
-      include: {
-        items: true,
+    const order = await this.updateOrderAndIncludeItems(orderId, {
+      items: {
+        create: this.toCreateOrderItemData(createOrderItemDto),
       },
     });
 
@@ -205,21 +144,11 @@ export class OrdersService {
     await this.getActiveOrderOrThrow(orderId);
     await this.getOrderItemOrThrow(orderId, itemId);
 
-    const data: Prisma.OrderItemUpdateInput = {};
-
-    if (updateOrderItemDto.description !== undefined) {
-      data.description = updateOrderItemDto.description;
-    }
-
-    if (updateOrderItemDto.price !== undefined) {
-      data.price = updateOrderItemDto.price;
-    }
-
     await this.prisma.orderItem.update({
       where: {
         id: itemId,
       },
-      data,
+      data: this.buildUpdateOrderItemData(updateOrderItemDto),
     });
 
     return this.findOrderById(orderId);
@@ -242,16 +171,7 @@ export class OrdersService {
   }
 
   async softDeleteOrder(id: string): Promise<{ message: string }> {
-    const order = await this.prisma.order.findFirst({
-      where: {
-        id,
-        deletedAt: null,
-      },
-    });
-
-    if (!order) {
-      throw new NotFoundException(`Order with id ${id} not found`);
-    }
+    await this.getActiveOrderOrThrow(id);
 
     await this.prisma.order.update({
       where: {
@@ -267,7 +187,7 @@ export class OrdersService {
     };
   }
 
-  // Gera um número de pedido único usando uma sequência no banco de dados
+  // Private helpers
   private async generateOrderNumber(): Promise<string> {
     const result = await this.prisma.$queryRaw<{ nextval: bigint }[]>`
     SELECT nextval('order_number_seq')::bigint
@@ -276,6 +196,101 @@ export class OrdersService {
     const nextNumber = Number(result[0].nextval);
 
     return `PED-${String(nextNumber).padStart(6, '0')}`;
+  }
+
+  private async buildCreateOrderData(
+    dto: CreateOrderDto,
+    userId: string,
+  ): Promise<Prisma.OrderCreateInput> {
+    return {
+      orderNumber: await this.generateOrderNumber(),
+      expectedDeliveryDate: new Date(dto.expectedDeliveryDate),
+      customerName: dto.customerName,
+      customerDocument: dto.customerDocument,
+      deliveryAddress: dto.deliveryAddress,
+      status: dto.status ?? 'PENDING',
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      items: {
+        create: dto.items.map((item) => this.toCreateOrderItemData(item)),
+      },
+    };
+  }
+
+  private buildUpdateOrderData(dto: UpdateOrderDto): Prisma.OrderUpdateInput {
+    const data: Prisma.OrderUpdateInput = {};
+
+    if (dto.expectedDeliveryDate !== undefined) {
+      data.expectedDeliveryDate = new Date(dto.expectedDeliveryDate);
+    }
+
+    if (dto.customerName !== undefined) {
+      data.customerName = dto.customerName;
+    }
+
+    if (dto.customerDocument !== undefined) {
+      data.customerDocument = dto.customerDocument;
+    }
+
+    if (dto.deliveryAddress !== undefined) {
+      data.deliveryAddress = dto.deliveryAddress;
+    }
+
+    if (dto.status !== undefined) {
+      data.status = dto.status;
+    }
+
+    if (dto.items !== undefined) {
+      data.items = {
+        deleteMany: {},
+        create: dto.items.map((item) => this.toCreateOrderItemData(item)),
+      };
+    }
+
+    return data;
+  }
+
+  private buildUpdateOrderItemData(
+    dto: UpdateOrderItemDto,
+  ): Prisma.OrderItemUpdateInput {
+    const data: Prisma.OrderItemUpdateInput = {};
+
+    if (dto.description !== undefined) {
+      data.description = dto.description;
+    }
+
+    if (dto.price !== undefined) {
+      data.price = dto.price;
+    }
+
+    return data;
+  }
+
+  private toCreateOrderItemData(
+    item: CreateOrderItemDto,
+  ): Prisma.OrderItemCreateWithoutOrderInput {
+    return {
+      description: item.description,
+      price: item.price,
+    };
+  }
+
+  private updateOrderAndIncludeItems(
+    id: string,
+    data: Prisma.OrderUpdateInput,
+  ): Promise<Prisma.OrderGetPayload<{ include: { items: true } }>> {
+    return this.prisma.order.update({
+      where: {
+        id,
+      },
+      data,
+      include: {
+        items: true,
+      },
+    });
   }
 
   private async getActiveOrderOrThrow(
