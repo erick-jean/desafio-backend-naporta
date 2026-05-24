@@ -16,7 +16,10 @@ import { UpdateOrderItemDto } from './dto/update-order-item.dto';
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateOrderDto, userId: string): Promise<ResponseOrderDto> {
+  async createOrder(
+    dto: CreateOrderDto,
+    userId: string,
+  ): Promise<ResponseOrderDto> {
     try {
       const order = await this.prisma.order.create({
         data: {
@@ -39,13 +42,13 @@ export class OrdersService {
         },
       });
 
-      return this.mapOrderToResponse(order);
+      return this.toOrderResponseDto(order);
     } catch (error) {
       this.handleOrderNumberConflict(error);
     }
   }
 
-  async findAll(filters: FilterOrdersDto): Promise<ResponseOrderDto[]> {
+  async findAllOrders(filters: FilterOrdersDto): Promise<ResponseOrderDto[]> {
     const where: Prisma.OrderWhereInput = {
       deletedAt: null,
     };
@@ -83,10 +86,10 @@ export class OrdersService {
       },
     });
 
-    return orders.map((order) => this.mapOrderToResponse(order));
+    return orders.map((order) => this.toOrderResponseDto(order));
   }
 
-  async findOne(id: string): Promise<ResponseOrderDto> {
+  async findOrderById(id: string): Promise<ResponseOrderDto> {
     const order = await this.prisma.order.findFirst({
       where: {
         id,
@@ -101,10 +104,10 @@ export class OrdersService {
       throw new NotFoundException(`Order with id ${id} not found`);
     }
 
-    return this.mapOrderToResponse(order);
+    return this.toOrderResponseDto(order);
   }
 
-  async update(
+  async updateOrder(
     id: string,
     updateOrderDto: UpdateOrderDto,
   ): Promise<ResponseOrderDto> {
@@ -162,17 +165,17 @@ export class OrdersService {
         },
       });
 
-      return this.mapOrderToResponse(updatedOrder);
+      return this.toOrderResponseDto(updatedOrder);
     } catch (error) {
       this.handleOrderNumberConflict(error);
     }
   }
 
-  async addItem(
+  async addOrderItem(
     orderId: string,
     createOrderItemDto: CreateOrderItemDto,
   ): Promise<ResponseOrderDto> {
-    await this.findActiveOrderOrThrow(orderId);
+    await this.getActiveOrderOrThrow(orderId);
 
     const order = await this.prisma.order.update({
       where: {
@@ -191,16 +194,16 @@ export class OrdersService {
       },
     });
 
-    return this.mapOrderToResponse(order);
+    return this.toOrderResponseDto(order);
   }
 
-  async updateItem(
+  async updateOrderItem(
     orderId: string,
     itemId: string,
     updateOrderItemDto: UpdateOrderItemDto,
   ): Promise<ResponseOrderDto> {
-    await this.findActiveOrderOrThrow(orderId);
-    await this.findOrderItemOrThrow(orderId, itemId);
+    await this.getActiveOrderOrThrow(orderId);
+    await this.getOrderItemOrThrow(orderId, itemId);
 
     const data: Prisma.OrderItemUpdateInput = {};
 
@@ -219,12 +222,15 @@ export class OrdersService {
       data,
     });
 
-    return this.findOne(orderId);
+    return this.findOrderById(orderId);
   }
 
-  async removeItem(orderId: string, itemId: string): Promise<ResponseOrderDto> {
-    await this.findActiveOrderOrThrow(orderId);
-    await this.findOrderItemOrThrow(orderId, itemId);
+  async removeOrderItem(
+    orderId: string,
+    itemId: string,
+  ): Promise<ResponseOrderDto> {
+    await this.getActiveOrderOrThrow(orderId);
+    await this.getOrderItemOrThrow(orderId, itemId);
 
     await this.prisma.orderItem.delete({
       where: {
@@ -232,10 +238,10 @@ export class OrdersService {
       },
     });
 
-    return this.findOne(orderId);
+    return this.findOrderById(orderId);
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async softDeleteOrder(id: string): Promise<{ message: string }> {
     const order = await this.prisma.order.findFirst({
       where: {
         id,
@@ -272,7 +278,7 @@ export class OrdersService {
     return `PED-${String(nextNumber).padStart(6, '0')}`;
   }
 
-  private async findActiveOrderOrThrow(
+  private async getActiveOrderOrThrow(
     id: string,
   ): Promise<Prisma.OrderGetPayload<{ include: { items: true } }>> {
     const order = await this.prisma.order.findFirst({
@@ -292,7 +298,7 @@ export class OrdersService {
     return order;
   }
 
-  private async findOrderItemOrThrow(orderId: string, itemId: string) {
+  private async getOrderItemOrThrow(orderId: string, itemId: string) {
     const item = await this.prisma.orderItem.findFirst({
       where: {
         id: itemId,
@@ -323,7 +329,7 @@ export class OrdersService {
   }
 
   // Mapeia o resultado do banco para o formato de resposta da API
-  private mapOrderToResponse(
+  private toOrderResponseDto(
     order: Prisma.OrderGetPayload<{ include: { items: true } }>,
   ): ResponseOrderDto {
     return {

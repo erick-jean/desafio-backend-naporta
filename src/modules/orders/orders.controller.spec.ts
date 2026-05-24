@@ -13,11 +13,14 @@ describe('OrdersController', () => {
         {
           provide: OrdersService,
           useValue: {
-            create: jest.fn(),
-            findAll: jest.fn(),
-            findOne: jest.fn(),
-            update: jest.fn(),
-            remove: jest.fn(),
+            createOrder: jest.fn(),
+            findAllOrders: jest.fn(),
+            findOrderById: jest.fn(),
+            updateOrder: jest.fn(),
+            softDeleteOrder: jest.fn(),
+            addOrderItem: jest.fn(),
+            updateOrderItem: jest.fn(),
+            removeOrderItem: jest.fn(),
           },
         },
         {

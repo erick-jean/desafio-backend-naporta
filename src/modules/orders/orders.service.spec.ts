@@ -76,7 +76,7 @@ describe('OrdersService', () => {
   it('should list active orders', async () => {
     prisma.order.findMany.mockResolvedValue([activeOrder]);
 
-    const result = await service.findAll({});
+    const result = await service.findAllOrders({});
 
     expect(prisma.order.findMany).toHaveBeenCalledWith({
       where: {
@@ -97,7 +97,7 @@ describe('OrdersService', () => {
   it('should find order by id', async () => {
     prisma.order.findFirst.mockResolvedValue(activeOrder);
 
-    const result = await service.findOne('order-1');
+    const result = await service.findOrderById('order-1');
 
     expect(prisma.order.findFirst).toHaveBeenCalledWith({
       where: {
@@ -115,7 +115,7 @@ describe('OrdersService', () => {
   it('should throw NotFoundException when order does not exist', async () => {
     prisma.order.findFirst.mockResolvedValue(null);
 
-    await expect(service.findOne('missing-order')).rejects.toThrow(
+    await expect(service.findOrderById('missing-order')).rejects.toThrow(
       NotFoundException,
     );
   });
@@ -127,7 +127,7 @@ describe('OrdersService', () => {
       deletedAt: new Date('2026-05-25'),
     });
 
-    await expect(service.remove('order-1')).resolves.toEqual({
+    await expect(service.softDeleteOrder('order-1')).resolves.toEqual({
       message: 'Order deleted successfully',
     });
     expect(prisma.order.update).toHaveBeenCalledWith({
@@ -143,7 +143,7 @@ describe('OrdersService', () => {
   it('should not return logically deleted orders', async () => {
     prisma.order.findMany.mockResolvedValue([]);
 
-    const result = await service.findAll({});
+    const result = await service.findAllOrders({});
 
     expect(prisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({

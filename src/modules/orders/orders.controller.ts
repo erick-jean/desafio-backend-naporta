@@ -40,72 +40,78 @@ export class OrdersController {
   @Post()
   @ApiOperation({ summary: 'Cria um novo pedido' })
   @ApiCreatedResponse({ type: ResponseOrderDto })
-  create(
+  createOrder(
     @Body() createOrderDto: CreateOrderDto,
     @Req() req: Request,
   ): Promise<ResponseOrderDto> {
     const user = req['user'] as { sub: string; email: string };
-    return this.ordersService.create(createOrderDto, user.sub);
+    return this.ordersService.createOrder(createOrderDto, user.sub);
   }
 
   @Get()
   @ApiOperation({ summary: 'Lista todos os pedidos' })
   @ApiOkResponse({ type: [ResponseOrderDto] })
-  findAll(@Query() filters: FilterOrdersDto): Promise<ResponseOrderDto[]> {
-    return this.ordersService.findAll(filters);
+  findAllOrders(
+    @Query() filters: FilterOrdersDto,
+  ): Promise<ResponseOrderDto[]> {
+    return this.ordersService.findAllOrders(filters);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Busca pedido por ID' })
   @ApiOkResponse({ type: ResponseOrderDto })
   @ApiNotFoundResponse({ description: 'Order not found' })
-  findOne(@Param('id') id: string): Promise<ResponseOrderDto> {
-    return this.ordersService.findOne(id);
+  findOrderById(@Param('id') id: string): Promise<ResponseOrderDto> {
+    return this.ordersService.findOrderById(id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualiza pedido' })
   @ApiOkResponse({ type: ResponseOrderDto })
   @ApiNotFoundResponse({ description: 'Order not found' })
-  update(
+  updateOrder(
     @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
   ): Promise<ResponseOrderDto> {
-    return this.ordersService.update(id, updateOrderDto);
+    return this.ordersService.updateOrder(id, updateOrderDto);
   }
 
   @Post(':orderId/items')
   @ApiOperation({ summary: 'Adiciona um item ao pedido' })
   @ApiCreatedResponse({ type: ResponseOrderDto })
   @ApiNotFoundResponse({ description: 'Order not found' })
-  addItem(
+  addOrderItem(
     @Param('orderId') orderId: string,
     @Body() createOrderItemDto: CreateOrderItemDto,
   ): Promise<ResponseOrderDto> {
-    return this.ordersService.addItem(orderId, createOrderItemDto);
+    return this.ordersService.addOrderItem(orderId, createOrderItemDto);
   }
 
   @Patch(':orderId/items/:itemId')
   @ApiOperation({ summary: 'Atualiza um item do pedido' })
   @ApiOkResponse({ type: ResponseOrderDto })
   @ApiNotFoundResponse({ description: 'Order or item not found' })
-  updateItem(
+  updateOrderItem(
     @Param('orderId') orderId: string,
     @Param('itemId') itemId: string,
     @Body() updateOrderItemDto: UpdateOrderItemDto,
   ): Promise<ResponseOrderDto> {
-    return this.ordersService.updateItem(orderId, itemId, updateOrderItemDto);
+    return this.ordersService.updateOrderItem(
+      orderId,
+      itemId,
+      updateOrderItemDto,
+    );
   }
 
   @Delete(':orderId/items/:itemId')
   @ApiOperation({ summary: 'Remove um item do pedido' })
   @ApiOkResponse({ type: ResponseOrderDto })
   @ApiNotFoundResponse({ description: 'Order or item not found' })
-  removeItem(
+  removeOrderItem(
     @Param('orderId') orderId: string,
     @Param('itemId') itemId: string,
   ): Promise<ResponseOrderDto> {
-    return this.ordersService.removeItem(orderId, itemId);
+    return this.ordersService.removeOrderItem(orderId, itemId);
   }
 
   @Delete(':id')
@@ -118,7 +124,7 @@ export class OrdersController {
     },
   })
   @ApiNotFoundResponse({ description: 'Order not found' })
-  remove(@Param('id') id: string): Promise<{ message: string }> {
-    return this.ordersService.remove(id);
+  softDeleteOrder(@Param('id') id: string): Promise<{ message: string }> {
+    return this.ordersService.softDeleteOrder(id);
   }
 }
