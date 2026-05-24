@@ -1,13 +1,19 @@
 import 'dotenv/config';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from 'generated/prisma/client'; 
+import { PrismaClient } from 'generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 
-const connectionString = `${process.env.DATABASE_URL}`;
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL não encontrada no .env');
+}
+
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
 async function main() {
   const passwordHash = await bcrypt.hash('123456', 10);
 
