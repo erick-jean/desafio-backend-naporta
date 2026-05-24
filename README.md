@@ -1,98 +1,188 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Desafio Backend naPorta
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST para gerenciamento de pedidos, desenvolvida em NestJS.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tecnologias
 
-## Description
+- Node.js
+- NestJS
+- PostgreSQL
+- Prisma
+- JWT
+- Docker
+- Swagger
+- ESLint
+- Jest
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Funcionalidades
 
-## Project setup
+- Autenticacao JWT com Bearer Token
+- Criar pedido
+- Listar pedidos
+- Filtrar pedidos por numero, periodo e status
+- Buscar pedido por ID
+- Editar pedido
+- Excluir pedido com exclusao logica
+- Seed com usuario e pedidos ficticios
 
-```bash
-$ npm install
+## Pre-requisitos
+
+- Node.js
+- Docker
+- npm
+
+## Variaveis de ambiente
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+DATABASE_URL="postgresql://admin:admin@localhost:5432/db-naporta?schema=public"
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=admin
+POSTGRES_DB=db-naporta
+POSTGRES_PORT=5432
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=1d
+PORT=3000
 ```
 
-## Compile and run the project
+## Como Rodar
+
+Instale as dependencias:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+Suba o banco com Docker:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up -d
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Aplique as migrations:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npx prisma migrate dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Gere o Prisma Client:
 
-## Resources
+```bash
+npx prisma generate
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Execute o seed:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npx prisma db seed
+```
 
-## Support
+Inicie a aplicacao em modo desenvolvimento:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm run start:dev
+```
 
-## Stay in touch
+## Swagger
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+A documentacao da API fica disponivel em:
 
-## License
+```text
+http://localhost:3000/api
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Usuario Seed
+
+O seed cria um usuario administrador para testes:
+
+```text
+email: admin@email.com
+password: 123456
+```
+
+## Rotas Principais
+
+```text
+POST   /auth/login
+POST   /orders
+GET    /orders
+GET    /orders/:id
+PATCH  /orders/:id
+DELETE /orders/:id
+```
+
+As rotas de pedidos exigem Bearer Token no header:
+
+```text
+Authorization: Bearer <token>
+```
+
+## Login
+
+Exemplo de body para `POST /auth/login`:
+
+```json
+{
+  "email": "admin@email.com",
+  "password": "123456"
+}
+```
+
+## Criar Pedido
+
+O campo `orderNumber` nao deve ser enviado pelo cliente. Ele e gerado automaticamente pelo backend no formato `PED-000001`, `PED-000002`, e assim por diante, usando a sequence PostgreSQL `order_number_seq`.
+
+Exemplo de body para `POST /orders`:
+
+```json
+{
+  "expectedDeliveryDate": "2026-06-01",
+  "customerName": "Joao Silva",
+  "customerDocument": "123.456.789-00",
+  "deliveryAddress": "Rua das Flores, 100 - Campo Grande/MS",
+  "status": "PENDING",
+  "items": [
+    {
+      "description": "Notebook Dell Inspiron",
+      "price": 3500
+    },
+    {
+      "description": "Mouse sem fio",
+      "price": 89.9
+    }
+  ]
+}
+```
+
+## Filtros de Pedidos
+
+Os filtros podem ser combinados:
+
+```text
+GET /orders?orderNumber=PED&status=PENDING&startDate=2026-01-01&endDate=2026-12-31
+```
+
+Filtros disponiveis:
+
+- `orderNumber`
+- `status`
+- `startDate`
+- `endDate`
+
+## Exclusao Logica
+
+A rota `DELETE /orders/:id` nao remove fisicamente o registro do banco.
+
+Ela preenche o campo `deletedAt` com a data da exclusao. Pedidos excluidos logicamente nao aparecem em `GET /orders` e nao sao retornados em `GET /orders/:id`.
+
+## Scripts Uteis
+
+```bash
+npm run start:dev
+npm run build
+npm run lint
+npm run test
+npx prisma studio
+npx prisma db seed
+```
