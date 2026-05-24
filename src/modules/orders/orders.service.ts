@@ -3,6 +3,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ResponseOrderDto } from './dto/response-order.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { FilterOrdersDto } from './dto/filter-orders.dto';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -12,11 +14,36 @@ export class OrdersService {
     return 'This action adds a new order';
   }
 
-  async findAll(): Promise<ResponseOrderDto[]> {
+  async findAll(filters: FilterOrdersDto): Promise<ResponseOrderDto[]> {
+    const where: Prisma.OrderWhereInput = {
+      deletedAt: null,
+    };
+
+    if (filters.orderNumber) {
+      where.orderNumber = {
+        contains: filters.orderNumber,
+        mode: 'insensitive',
+      };
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.startDate || filters.endDate) {
+      where.createdAt = {};
+
+      if (filters.startDate) {
+        where.createdAt.gte = new Date(filters.startDate);
+      }
+
+      if (filters.endDate) {
+        where.createdAt.lte = new Date(filters.endDate);
+      }
+    }
+
     const orders = await this.prisma.order.findMany({
-      where: {
-        deletedAt: null,
-      },
+      where,
       include: {
         items: true,
       },
@@ -25,7 +52,26 @@ export class OrdersService {
       },
     });
 
-    return orders.map((order) => ({
+    return orders.map((order) => this.mapOrderToResponse(order));
+  }
+
+  findOne(id: number) {
+    return `This action returns a #${id} order`;
+  }
+
+  update(id: number, updateOrderDto: UpdateOrderDto) {
+    return `This action updates a #${id} order`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} order`;
+  }
+
+  // Mapeia o resultado do banco para o formato de resposta da API
+  private mapOrderToResponse(
+    order: Prisma.OrderGetPayload<{ include: { items: true } }>,
+  ): ResponseOrderDto {
+    return {
       id: order.id,
       orderNumber: order.orderNumber,
       expectedDeliveryDate: order.expectedDeliveryDate,
@@ -43,18 +89,6 @@ export class OrdersService {
         price: Number(item.price),
         orderId: item.orderId,
       })),
-    }));
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
-
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+    };
   }
 }
