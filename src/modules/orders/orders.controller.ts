@@ -42,8 +42,9 @@ export class OrdersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtém um pedido pelo ID' })
+  @ApiCreatedResponse({ type: [ResponseOrderDto] })
   findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+    return this.ordersService.findOne(id);
   }
 
   @Patch(':id')

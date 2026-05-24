@@ -55,8 +55,15 @@ export class OrdersService {
     return orders.map((order) => this.mapOrderToResponse(order));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOne(id: string): Promise<ResponseOrderDto> {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+    if (!order) {
+      throw new Error(`Order with id ${id} not found`);
+    }
+    return this.mapOrderToResponse(order);
   }
 
   update(id: number, updateOrderDto: UpdateOrderDto) {
