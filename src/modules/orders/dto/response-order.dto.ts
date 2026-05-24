@@ -27,7 +27,7 @@ export class OrderItemResponseDto {
   orderId!: string;
 }
 
-export class OrderResponseDto {
+export class ResponseOrderDto {
   @ApiProperty({
     example: 'e82f49c2-6c0e-4f97-9a30-4a7f67f7f0c2',
     description: 'Order ID',
