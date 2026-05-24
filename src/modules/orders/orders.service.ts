@@ -73,13 +73,20 @@ export class OrdersService {
   }
 
   async findOne(id: string): Promise<ResponseOrderDto> {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
-      include: { items: true },
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      include: {
+        items: true,
+      },
     });
+
     if (!order) {
-      throw new Error(`Order with id ${id} not found`);
+      throw new NotFoundException(`Order with id ${id} not found`);
     }
+
     return this.mapOrderToResponse(order);
   }
 
