@@ -133,6 +133,16 @@ export class OrdersService {
       data.status = updateOrderDto.status;
     }
 
+    if (updateOrderDto.items !== undefined) {
+      data.items = {
+        deleteMany: {},
+        create: updateOrderDto.items.map((item) => ({
+          description: item.description,
+          price: item.price,
+        })),
+      };
+    }
+
     const updatedOrder = await this.prisma.order.update({
       where: {
         id,
