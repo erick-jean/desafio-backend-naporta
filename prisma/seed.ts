@@ -34,7 +34,6 @@ async function main() {
 
   const orders = [
     {
-      orderNumber: 'PED-001',
       expectedDeliveryDate: new Date('2026-06-01'),
       customerName: 'João Silva',
       customerDocument: '123.456.789-00',
@@ -52,7 +51,6 @@ async function main() {
       ],
     },
     {
-      orderNumber: 'PED-002',
       expectedDeliveryDate: new Date('2026-06-03'),
       customerName: 'Maria Oliveira',
       customerDocument: '987.654.321-00',
@@ -70,7 +68,6 @@ async function main() {
       ],
     },
     {
-      orderNumber: 'PED-003',
       expectedDeliveryDate: new Date('2026-06-05'),
       customerName: 'Carlos Souza',
       customerDocument: '456.789.123-00',
@@ -84,7 +81,6 @@ async function main() {
       ],
     },
     {
-      orderNumber: 'PED-004',
       expectedDeliveryDate: new Date('2026-06-08'),
       customerName: 'Ana Pereira',
       customerDocument: '321.654.987-00',
@@ -106,7 +102,6 @@ async function main() {
       ],
     },
     {
-      orderNumber: 'PED-005',
       expectedDeliveryDate: new Date('2026-06-10'),
       customerName: 'Fernando Lima',
       customerDocument: '789.123.456-00',
@@ -122,33 +117,48 @@ async function main() {
   ];
 
   for (const order of orders) {
-    await prisma.order.upsert({
+    const existingOrder = await prisma.order.findFirst({
       where: {
-        orderNumber: order.orderNumber,
+        customerDocument: order.customerDocument,
+        userId: admin.id,
       },
-      update: {
+    });
+
+    if (existingOrder) {
+      await prisma.order.update({
+        where: {
+          id: existingOrder.id,
+        },
+        data: {
+          expectedDeliveryDate: order.expectedDeliveryDate,
+          customerName: order.customerName,
+          customerDocument: order.customerDocument,
+          deliveryAddress: order.deliveryAddress,
+          status: order.status,
+          deletedAt: null,
+          userId: admin.id,
+          items: {
+            deleteMany: {},
+            create: order.items.map((item) => ({
+              description: item.description,
+              price: item.price,
+            })),
+          },
+        },
+      });
+
+      continue;
+    }
+
+    await prisma.order.create({
+      data: {
+        orderNumber: await generateOrderNumber(),
         expectedDeliveryDate: order.expectedDeliveryDate,
         customerName: order.customerName,
         customerDocument: order.customerDocument,
         deliveryAddress: order.deliveryAddress,
         status: order.status,
         deletedAt: null,
-        userId: admin.id,
-        items: {
-          deleteMany: {},
-          create: order.items.map((item) => ({
-            description: item.description,
-            price: item.price,
-          })),
-        },
-      },
-      create: {
-        orderNumber: order.orderNumber,
-        expectedDeliveryDate: order.expectedDeliveryDate,
-        customerName: order.customerName,
-        customerDocument: order.customerDocument,
-        deliveryAddress: order.deliveryAddress,
-        status: order.status,
         userId: admin.id,
         items: {
           create: order.items.map((item) => ({
@@ -169,6 +179,16 @@ async function main() {
     },
     ordersCreated: orders.length,
   });
+}
+
+async function generateOrderNumber(): Promise<string> {
+  const result = await prisma.$queryRaw<{ nextval: bigint }[]>`
+    SELECT nextval('order_number_seq')::bigint
+  `;
+
+  const nextNumber = Number(result[0].nextval);
+
+  return `PED-${String(nextNumber).padStart(6, '0')}`;
 }
 
 main()
