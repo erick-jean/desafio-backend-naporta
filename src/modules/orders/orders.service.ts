@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ResponseOrderDto } from './dto/response-order.dto';
@@ -91,8 +91,30 @@ export class OrdersService {
     return `This action updates a #${id} order`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async remove(id: string): Promise<{ message: string }> {
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with id ${id} not found`);
+    }
+
+    await this.prisma.order.update({
+      where: {
+        id,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    return {
+      message: 'Order deleted successfully',
+    };
   }
 
   // Gera um número de pedido único usando uma sequência no banco de dados
