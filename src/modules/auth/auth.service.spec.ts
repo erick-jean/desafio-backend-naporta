@@ -59,7 +59,9 @@ describe('AuthService', () => {
     compareMock.mockResolvedValue(true);
     jwtService.signAsync.mockResolvedValue('jwt-token');
 
-    await expect(service.signIn('admin@email.com', '123456')).resolves.toEqual({
+    await expect(
+      service.login({ email: 'admin@email.com', password: '123456' }),
+    ).resolves.toEqual({
       access_token: 'jwt-token',
     });
     expect(jwtService.signAsync).toHaveBeenCalledWith({
@@ -71,9 +73,9 @@ describe('AuthService', () => {
   it('should throw UnauthorizedException when user does not exist', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
 
-    await expect(service.signIn('missing@email.com', '123456')).rejects.toThrow(
-      UnauthorizedException,
-    );
+    await expect(
+      service.login({ email: 'missing@email.com', password: '123456' }),
+    ).rejects.toThrow(UnauthorizedException);
     expect(compareMock).not.toHaveBeenCalled();
     expect(jwtService.signAsync).not.toHaveBeenCalled();
   });
@@ -86,9 +88,9 @@ describe('AuthService', () => {
     });
     compareMock.mockResolvedValue(false);
 
-    await expect(service.signIn('admin@email.com', 'wrong')).rejects.toThrow(
-      UnauthorizedException,
-    );
+    await expect(
+      service.login({ email: 'admin@email.com', password: 'wrong' }),
+    ).rejects.toThrow(UnauthorizedException);
     expect(jwtService.signAsync).not.toHaveBeenCalled();
   });
 });

@@ -12,7 +12,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Realiza o login do usuário' })
   @ApiCreatedResponse({ type: ResponseAuthDto })
   @Post('login')
-  create(@Body() signInDto: SignInDto): Promise<{ access_token: string }> {
-    return this.authService.signIn(signInDto.email, signInDto.password);
+  login(@Body() signInDto: SignInDto): Promise<{ access_token: string }> {
+    return this.authService.login(signInDto);
   }
 }
