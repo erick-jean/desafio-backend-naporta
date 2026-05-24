@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ResponseOrderDto } from './dto/response-order.dto';
@@ -13,28 +17,32 @@ export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateOrderDto, userId: string): Promise<ResponseOrderDto> {
-    const order = await this.prisma.order.create({
-      data: {
-        orderNumber: await this.generateOrderNumber(),
-        expectedDeliveryDate: new Date(dto.expectedDeliveryDate),
-        customerName: dto.customerName,
-        customerDocument: dto.customerDocument,
-        deliveryAddress: dto.deliveryAddress,
-        status: dto.status ?? 'PENDING',
-        userId: userId,
-        items: {
-          create: dto.items.map((item) => ({
-            description: item.description,
-            price: item.price,
-          })),
+    try {
+      const order = await this.prisma.order.create({
+        data: {
+          orderNumber: await this.generateOrderNumber(),
+          expectedDeliveryDate: new Date(dto.expectedDeliveryDate),
+          customerName: dto.customerName,
+          customerDocument: dto.customerDocument,
+          deliveryAddress: dto.deliveryAddress,
+          status: dto.status ?? 'PENDING',
+          userId: userId,
+          items: {
+            create: dto.items.map((item) => ({
+              description: item.description,
+              price: item.price,
+            })),
+          },
         },
-      },
-      include: {
-        items: true,
-      },
-    });
+        include: {
+          items: true,
+        },
+      });
 
-    return this.mapOrderToResponse(order);
+      return this.mapOrderToResponse(order);
+    } catch (error) {
+      this.handleOrderNumberConflict(error);
+    }
   }
 
   async findAll(filters: FilterOrdersDto): Promise<ResponseOrderDto[]> {
@@ -143,17 +151,21 @@ export class OrdersService {
       };
     }
 
-    const updatedOrder = await this.prisma.order.update({
-      where: {
-        id,
-      },
-      data,
-      include: {
-        items: true,
-      },
-    });
+    try {
+      const updatedOrder = await this.prisma.order.update({
+        where: {
+          id,
+        },
+        data,
+        include: {
+          items: true,
+        },
+      });
 
-    return this.mapOrderToResponse(updatedOrder);
+      return this.mapOrderToResponse(updatedOrder);
+    } catch (error) {
+      this.handleOrderNumberConflict(error);
+    }
   }
 
   async addItem(
@@ -295,6 +307,19 @@ export class OrdersService {
     }
 
     return item;
+  }
+
+  private handleOrderNumberConflict(error: unknown): never {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      throw new ConflictException(
+        'An order with this order number already exists',
+      );
+    }
+
+    throw error;
   }
 
   // Mapeia o resultado do banco para o formato de resposta da API
