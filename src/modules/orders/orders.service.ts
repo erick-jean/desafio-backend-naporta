@@ -87,7 +87,7 @@ export class OrdersService {
     return this.mapOrderToResponse(order);
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
+  update(id: number, _updateOrderDto: UpdateOrderDto) {
     return `This action updates a #${id} order`;
   }
 

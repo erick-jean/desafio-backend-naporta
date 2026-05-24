@@ -15,8 +15,14 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return API metadata', () => {
+      expect(appController.getRoot()).toEqual({
+        name: 'API de Pedidos - Desafio naPorta',
+        version: '1.0.0',
+        status: 'online',
+        docs: '/api',
+        health: '/health',
+      });
     });
   });
 });
