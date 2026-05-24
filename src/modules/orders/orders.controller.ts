@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -19,8 +18,11 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Request } from 'express';
 import { AuthGuard } from '../auth/auth.guard';
+import {
+  CurrentUser,
+  CurrentUserPayload,
+} from '../auth/decorators/current-user.decorator';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateOrderItemDto } from './dto/create-order-item.dto';
 import { FilterOrdersDto } from './dto/filter-orders.dto';
@@ -42,9 +44,8 @@ export class OrdersController {
   @ApiCreatedResponse({ type: ResponseOrderDto })
   createOrder(
     @Body() createOrderDto: CreateOrderDto,
-    @Req() req: Request,
+    @CurrentUser() user: CurrentUserPayload,
   ): Promise<ResponseOrderDto> {
-    const user = req['user'] as { sub: string; email: string };
     return this.ordersService.createOrder(createOrderDto, user.sub);
   }
 
