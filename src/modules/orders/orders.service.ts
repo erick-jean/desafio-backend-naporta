@@ -87,8 +87,64 @@ export class OrdersService {
     return this.mapOrderToResponse(order);
   }
 
-  update(id: number, _updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+  async update(
+    id: string,
+    updateOrderDto: UpdateOrderDto,
+  ): Promise<ResponseOrderDto> {
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with id ${id} not found`);
+    }
+
+    const data: Prisma.OrderUpdateInput = {};
+
+    if (updateOrderDto.expectedDeliveryDate !== undefined) {
+      data.expectedDeliveryDate = new Date(updateOrderDto.expectedDeliveryDate);
+    }
+
+    if (updateOrderDto.customerName !== undefined) {
+      data.customerName = updateOrderDto.customerName;
+    }
+
+    if (updateOrderDto.customerDocument !== undefined) {
+      data.customerDocument = updateOrderDto.customerDocument;
+    }
+
+    if (updateOrderDto.deliveryAddress !== undefined) {
+      data.deliveryAddress = updateOrderDto.deliveryAddress;
+    }
+
+    if (updateOrderDto.status !== undefined) {
+      data.status = updateOrderDto.status;
+    }
+
+    if (updateOrderDto.items !== undefined) {
+      data.items = {
+        deleteMany: {},
+        create: updateOrderDto.items.map((item) => ({
+          description: item.description,
+          price: item.price,
+        })),
+      };
+    }
+
+    const updatedOrder = await this.prisma.order.update({
+      where: {
+        id,
+      },
+      data,
+      include: {
+        items: true,
+      },
+    });
+
+    return this.mapOrderToResponse(updatedOrder);
   }
 
   async remove(id: string): Promise<{ message: string }> {

@@ -56,8 +56,11 @@ export class OrdersController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualiza um pedido pelo ID' })
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+  ): Promise<ResponseOrderDto> {
+    return this.ordersService.update(id, updateOrderDto);
   }
 
   @Delete(':id')
