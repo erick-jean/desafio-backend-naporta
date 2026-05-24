@@ -33,7 +33,7 @@ API REST para gerenciamento de pedidos, desenvolvida em NestJS.
 
 ## Variaveis de ambiente
 
-Crie um arquivo `.env` na raiz do projeto:
+Copie o arquivo `.env.example` para `.env` ou crie um arquivo `.env` na raiz do projeto:
 
 ```env
 DATABASE_URL="postgresql://admin:admin@localhost:5432/db-naporta?schema=public"
