@@ -4,7 +4,7 @@ import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 export class CreateOrderItemDto {
   @ApiProperty({
     example: 'Notebook Dell Inspiron',
-    description: 'Item description',
+    description: 'Order item description',
   })
   @IsString()
   @IsNotEmpty()
@@ -12,7 +12,7 @@ export class CreateOrderItemDto {
 
   @ApiProperty({
     example: 3500,
-    description: 'Item price',
+    description: 'Order item price. Must be zero or greater.',
   })
   @IsNumber()
   @Min(0)

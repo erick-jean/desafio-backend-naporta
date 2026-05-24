@@ -16,13 +16,13 @@ import { CreateOrderItemDto } from './create-order-item.dto';
 export class CreateOrderDto {
   @ApiProperty({
     example: '2026-06-01',
-    description: 'Expected delivery date',
+    description: 'Expected delivery date in ISO 8601 format',
   })
   @IsDateString()
   expectedDeliveryDate!: string;
 
   @ApiProperty({
-    example: 'João Silva',
+    example: 'Joao Silva',
     description: 'Customer name',
   })
   @IsString()
@@ -31,7 +31,7 @@ export class CreateOrderDto {
 
   @ApiProperty({
     example: '123.456.789-00',
-    description: 'Customer document',
+    description: 'Customer CPF or CNPJ document',
   })
   @IsString()
   @IsNotEmpty()
@@ -48,7 +48,7 @@ export class CreateOrderDto {
   @ApiPropertyOptional({
     enum: OrderStatus,
     example: OrderStatus.PENDING,
-    description: 'Order status',
+    description: 'Initial order status. Defaults to PENDING when omitted.',
   })
   @IsOptional()
   @IsEnum(OrderStatus)
@@ -56,8 +56,18 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: [CreateOrderItemDto],
-    description: 'Order items',
+    description: 'Order items. At least one item is required.',
     minItems: 1,
+    example: [
+      {
+        description: 'Notebook Dell Inspiron',
+        price: 3500,
+      },
+      {
+        description: 'Mouse sem fio',
+        price: 89.9,
+      },
+    ],
   })
   @IsArray()
   @ArrayMinSize(1)

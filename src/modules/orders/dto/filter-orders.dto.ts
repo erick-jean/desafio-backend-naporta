@@ -4,7 +4,7 @@ import { OrderStatus } from 'generated/prisma/client';
 
 export class FilterOrdersDto {
   @ApiPropertyOptional({
-    example: 'PED-001',
+    example: 'PED-000001',
     description: 'Filter by order number',
   })
   @IsOptional()
@@ -12,16 +12,16 @@ export class FilterOrdersDto {
   orderNumber?: string;
 
   @ApiPropertyOptional({
-    example: '2026-05-01',
-    description: 'Initial date filter',
+    example: '2026-01-01',
+    description: 'Initial creation date filter',
   })
   @IsOptional()
   @IsDateString()
   startDate?: string;
 
   @ApiPropertyOptional({
-    example: '2026-06-30',
-    description: 'Final date filter',
+    example: '2026-12-31',
+    description: 'Final creation date filter',
   })
   @IsOptional()
   @IsDateString()
