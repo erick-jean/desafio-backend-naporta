@@ -1,40 +1,45 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
-import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { AuthGuard } from '../auth/auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ResponseOrderDto } from './dto/response-order.dto';
-import { FilterOrdersDto } from './dto/filter-orders.dto';
 import { Request } from 'express';
+import { AuthGuard } from '../auth/auth.guard';
+import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateOrderItemDto } from './dto/create-order-item.dto';
+import { FilterOrdersDto } from './dto/filter-orders.dto';
+import { ResponseOrderDto } from './dto/response-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
+import { OrdersService } from './orders.service';
 
-@UseGuards(AuthGuard)
+@ApiTags('Orders')
 @ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+@UseGuards(AuthGuard)
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
   @ApiOperation({ summary: 'Cria um novo pedido' })
-  @ApiCreatedResponse({ type: [ResponseOrderDto] })
+  @ApiCreatedResponse({ type: ResponseOrderDto })
   create(
     @Body() createOrderDto: CreateOrderDto,
     @Req() req: Request,
@@ -45,21 +50,23 @@ export class OrdersController {
 
   @Get()
   @ApiOperation({ summary: 'Lista todos os pedidos' })
-  @ApiCreatedResponse({ type: [ResponseOrderDto] })
-  findAll(@Query() filters: FilterOrdersDto) {
+  @ApiOkResponse({ type: [ResponseOrderDto] })
+  findAll(@Query() filters: FilterOrdersDto): Promise<ResponseOrderDto[]> {
     return this.ordersService.findAll(filters);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtém um pedido pelo ID' })
-  @ApiCreatedResponse({ type: [ResponseOrderDto] })
-  findOne(@Param('id') id: string) {
+  @ApiOperation({ summary: 'Busca pedido por ID' })
+  @ApiOkResponse({ type: ResponseOrderDto })
+  @ApiNotFoundResponse({ description: 'Order not found' })
+  findOne(@Param('id') id: string): Promise<ResponseOrderDto> {
     return this.ordersService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualiza um pedido pelo ID' })
+  @ApiOperation({ summary: 'Atualiza pedido' })
   @ApiOkResponse({ type: ResponseOrderDto })
+  @ApiNotFoundResponse({ description: 'Order not found' })
   update(
     @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
@@ -70,6 +77,7 @@ export class OrdersController {
   @Post(':orderId/items')
   @ApiOperation({ summary: 'Adiciona um item ao pedido' })
   @ApiCreatedResponse({ type: ResponseOrderDto })
+  @ApiNotFoundResponse({ description: 'Order not found' })
   addItem(
     @Param('orderId') orderId: string,
     @Body() createOrderItemDto: CreateOrderItemDto,
@@ -80,6 +88,7 @@ export class OrdersController {
   @Patch(':orderId/items/:itemId')
   @ApiOperation({ summary: 'Atualiza um item do pedido' })
   @ApiOkResponse({ type: ResponseOrderDto })
+  @ApiNotFoundResponse({ description: 'Order or item not found' })
   updateItem(
     @Param('orderId') orderId: string,
     @Param('itemId') itemId: string,
@@ -91,6 +100,7 @@ export class OrdersController {
   @Delete(':orderId/items/:itemId')
   @ApiOperation({ summary: 'Remove um item do pedido' })
   @ApiOkResponse({ type: ResponseOrderDto })
+  @ApiNotFoundResponse({ description: 'Order or item not found' })
   removeItem(
     @Param('orderId') orderId: string,
     @Param('itemId') itemId: string,
@@ -99,7 +109,15 @@ export class OrdersController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Remove um pedido pelo ID' })
+  @ApiOperation({ summary: 'Remove pedido logicamente' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Order deleted successfully',
+      },
+    },
+  })
+  @ApiNotFoundResponse({ description: 'Order not found' })
   remove(@Param('id') id: string): Promise<{ message: string }> {
     return this.ordersService.remove(id);
   }
