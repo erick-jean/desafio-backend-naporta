@@ -1,35 +1,12 @@
 import {
-  IsArray,
   IsDateString,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
-  Min,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OrderStatus } from 'generated/prisma/client';
-
-class CreateOrderItemDto {
-  @ApiProperty({
-    example: 'Notebook Dell Inspiron',
-    description: 'Item description',
-  })
-  @IsString()
-  @IsNotEmpty()
-  description!: string;
-
-  @ApiProperty({
-    example: 3500,
-    description: 'Item price',
-  })
-  @IsNumber()
-  @Min(0)
-  price!: number;
-}
 
 export class CreateOrderDto {
   @ApiProperty({
@@ -71,13 +48,4 @@ export class CreateOrderDto {
   @IsOptional()
   @IsEnum(OrderStatus)
   status?: OrderStatus;
-
-  @ApiProperty({
-    type: [CreateOrderItemDto],
-    description: 'Order items',
-  })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateOrderItemDto)
-  items!: CreateOrderItemDto[];
 }

@@ -17,11 +17,14 @@ import { AuthGuard } from '../auth/auth.guard';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
 import { ResponseOrderDto } from './dto/response-order.dto';
 import { FilterOrdersDto } from './dto/filter-orders.dto';
 import { Request } from 'express';
+import { CreateOrderItemDto } from './dto/create-order-item.dto';
+import { UpdateOrderItemDto } from './dto/update-order-item.dto';
 
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
@@ -56,11 +59,43 @@ export class OrdersController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualiza um pedido pelo ID' })
+  @ApiOkResponse({ type: ResponseOrderDto })
   update(
     @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
   ): Promise<ResponseOrderDto> {
     return this.ordersService.update(id, updateOrderDto);
+  }
+
+  @Post(':orderId/items')
+  @ApiOperation({ summary: 'Adiciona um item ao pedido' })
+  @ApiCreatedResponse({ type: ResponseOrderDto })
+  addItem(
+    @Param('orderId') orderId: string,
+    @Body() createOrderItemDto: CreateOrderItemDto,
+  ): Promise<ResponseOrderDto> {
+    return this.ordersService.addItem(orderId, createOrderItemDto);
+  }
+
+  @Patch(':orderId/items/:itemId')
+  @ApiOperation({ summary: 'Atualiza um item do pedido' })
+  @ApiOkResponse({ type: ResponseOrderDto })
+  updateItem(
+    @Param('orderId') orderId: string,
+    @Param('itemId') itemId: string,
+    @Body() updateOrderItemDto: UpdateOrderItemDto,
+  ): Promise<ResponseOrderDto> {
+    return this.ordersService.updateItem(orderId, itemId, updateOrderItemDto);
+  }
+
+  @Delete(':orderId/items/:itemId')
+  @ApiOperation({ summary: 'Remove um item do pedido' })
+  @ApiOkResponse({ type: ResponseOrderDto })
+  removeItem(
+    @Param('orderId') orderId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<ResponseOrderDto> {
+    return this.ordersService.removeItem(orderId, itemId);
   }
 
   @Delete(':id')
