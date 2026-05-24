@@ -22,6 +22,12 @@ export class OrdersService {
         deliveryAddress: dto.deliveryAddress,
         status: dto.status ?? 'PENDING',
         userId: userId,
+        items: {
+          create: dto.items.map((item) => ({
+            description: item.description,
+            price: item.price,
+          })),
+        },
       },
       include: {
         items: true,
