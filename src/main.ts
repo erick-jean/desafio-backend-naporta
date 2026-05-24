@@ -1,5 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerCustomOptions,
+} from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 
@@ -12,9 +16,23 @@ async function bootstrap() {
       'API REST para gerenciamento de pedidos, com autenticação JWT, filtros, CRUD completo e exclusão lógica.',
     )
     .setVersion('1.0')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      name: 'Authorization',
+      description: 'Informe o token JWT',
+      in: 'header',
+    })
     .build();
+
+  const options: SwaggerCustomOptions = {
+    ui: true, // Swagger UI is enabled
+    raw: ['json'], // JSON API definition is still accessible (YAML is disabled)
+  };
+
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup('api', app, documentFactory, options);
 
   // Obtém o ConfigService para acessar as variáveis de ambiente
   const configService = app.get(ConfigService);
