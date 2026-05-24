@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -20,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { ResponseOrderDto } from './dto/response-order.dto';
 import { FilterOrdersDto } from './dto/filter-orders.dto';
+import { Request } from 'express';
 
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
@@ -29,8 +31,13 @@ export class OrdersController {
 
   @Post()
   @ApiOperation({ summary: 'Cria um novo pedido' })
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  @ApiCreatedResponse({ type: [ResponseOrderDto] })
+  create(
+    @Body() createOrderDto: CreateOrderDto,
+    @Req() req: Request,
+  ): Promise<ResponseOrderDto> {
+    const user = req['user'] as { sub: string; email: string };
+    return this.ordersService.create(createOrderDto, user.sub);
   }
 
   @Get()

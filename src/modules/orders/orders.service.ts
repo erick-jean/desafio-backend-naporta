@@ -10,8 +10,29 @@ import { Prisma } from 'generated/prisma/client';
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  async create(dto: CreateOrderDto, userId: string): Promise<ResponseOrderDto> {
+    const order = await this.prisma.order.create({
+      data: {
+        orderNumber: await this.generateOrderNumber(),
+        expectedDeliveryDate: new Date(dto.expectedDeliveryDate),
+        customerName: dto.customerName,
+        customerDocument: dto.customerDocument,
+        deliveryAddress: dto.deliveryAddress,
+        status: dto.status ?? 'PENDING',
+        userId: userId,
+        items: {
+          create: dto.items.map((item) => ({
+            description: item.description,
+            price: item.price,
+          })),
+        },
+      },
+      include: {
+        items: true,
+      },
+    });
+
+    return this.mapOrderToResponse(order);
   }
 
   async findAll(filters: FilterOrdersDto): Promise<ResponseOrderDto[]> {
@@ -72,6 +93,17 @@ export class OrdersService {
 
   remove(id: number) {
     return `This action removes a #${id} order`;
+  }
+
+  // Gera um número de pedido único usando uma sequência no banco de dados
+  private async generateOrderNumber(): Promise<string> {
+    const result = await this.prisma.$queryRaw<{ nextval: bigint }[]>`
+    SELECT nextval('order_number_seq')::bigint
+  `;
+
+    const nextNumber = Number(result[0].nextval);
+
+    return `PED-${String(nextNumber).padStart(6, '0')}`;
   }
 
   // Mapeia o resultado do banco para o formato de resposta da API
