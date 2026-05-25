@@ -120,7 +120,6 @@ export class OrdersService {
     }
   }
 
-  // Order item operations
   async addOrderItem(
     orderId: string,
     createOrderItemDto: CreateOrderItemDto,
@@ -187,7 +186,6 @@ export class OrdersService {
     };
   }
 
-  // Private helpers
   private async generateOrderNumber(): Promise<string> {
     const result = await this.prisma.$queryRaw<{ nextval: bigint }[]>`
     SELECT nextval('order_number_seq')::bigint
@@ -343,7 +341,6 @@ export class OrdersService {
     throw error;
   }
 
-  // Mapeia o resultado do banco para o formato de resposta da API
   private toOrderResponseDto(
     order: Prisma.OrderGetPayload<{ include: { items: true } }>,
   ): ResponseOrderDto {

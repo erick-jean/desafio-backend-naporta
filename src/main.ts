@@ -11,7 +11,6 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configura o ValidationPipe globalmente para validar as requisições
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,7 +19,6 @@ async function bootstrap() {
     }),
   );
 
-  // Configura o Swagger para documentação da API
   const config = new DocumentBuilder()
     .setTitle('Desafio Backend naPorta')
     .setDescription(
@@ -37,16 +35,14 @@ async function bootstrap() {
     })
     .build();
 
-  // Configurações personalizadas para o Swagger UI
   const options: SwaggerCustomOptions = {
-    ui: true, // Swagger UI is enabled
-    raw: ['json'], // JSON API definition is still accessible (YAML is disabled)
+    ui: true,
+    raw: ['json'],
   };
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory, options);
 
-  // Obtém o ConfigService para acessar as variáveis de ambiente
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') ?? 3000;
 
