@@ -2,7 +2,7 @@
   "name": "desafio-backend-naporta",
   "version": "0.0.1",
   "private": true,
-  "description": "<p align=\"center\">\r   <a href=\"http://nestjs.com/\" target=\"blank\"><img src=\"https://nestjs.com/img/logo-small.svg\" width=\"120\" alt=\"Nest Logo\" /></a>\r </p>",
+  "description": "API REST para gerenciamento de pedidos desenvolvida para o desafio backend da naPorta.",
   "homepage": "https://github.com/erick-jean/desafio-backend-naporta#readme",
   "bugs": {
     "url": "https://github.com/erick-jean/desafio-backend-naporta/issues"
@@ -12,7 +12,7 @@
     "url": "git+https://github.com/erick-jean/desafio-backend-naporta.git"
   },
   "license": "UNLICENSED",
-  "author": "",
+  "author": "Erick Jean",
   "main": "index.js",
   "directories": {
     "test": "test"
