@@ -8,7 +8,7 @@ import { SignInDto } from './dto/signIn.dto';
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async login(credentials: SignInDto): Promise<{ access_token: string }> {
