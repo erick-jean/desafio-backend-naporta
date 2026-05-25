@@ -118,7 +118,15 @@ As rotas de pedidos exigem Bearer Token no header:
 Authorization: Bearer <token>
 ```
 
-Também existem rotas auxiliares para adicionar, atualizar e remover itens de um pedido.
+## Rotas auxiliares de itens
+
+```text
+POST   /orders/:orderId/items
+PATCH  /orders/:orderId/items/:itemId
+DELETE /orders/:orderId/items/:itemId
+```
+
+Essas rotas são auxiliares para manipular itens de um pedido já existente. O endpoint `POST /orders` também permite criar um pedido com itens na mesma requisição.
 
 ## Login
 
